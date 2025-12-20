@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import express from "express"
 
-import { client } from "./database.js"
+import { pool } from "./database.js"
 
 const JWT_SECRET = 'your_secret_key';
 
@@ -33,8 +33,7 @@ authRouter.post('/login', async (req, res) => {
 	const { email, password } = loginSchema.parse(req.body);
 
 	const query = "SELECT user_id, name, email, password, role FROM users WHERE email = $1 LIMIT 1"
-	console.log(query)
-	const { rows: [user] } = await client.query(query, [email]);
+	const { rows: [user] } = await pool.query(query, [email]);
 	const isMatch = user !== undefined && await bcrypt.compare(password, user.password);
 	if (!isMatch) throw {
 		status: 401,
@@ -47,10 +46,14 @@ authRouter.post('/login', async (req, res) => {
 		{ expiresIn: '1h' }
 	);
 
-	delete user.password
 	return res.json({
 		message: 'Login successful',
 		token,
-		user: user,
+		user: {
+			userId: user.user_id,
+			name: user.name,
+			email: user.email,
+			role: user.role,
+		},
 	});
 });
