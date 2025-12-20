@@ -1,3 +1,4 @@
+import z from "zod"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import express from "express"
@@ -22,12 +23,14 @@ export function authMiddleware(req, _, next) {
 }
 
 export const authRouter = express.Router()
+
+const loginSchema = z.object({
+	email: z.email(),
+	password: z.string()
+})
+
 authRouter.post('/login', async (req, res) => {
-	const { email, password } = req.body;
-	if (!email || !password) throw {
-		status: 400,
-		message: "Email and password are required"
-	}
+	const { email, password } = loginSchema.parse(req.body);
 
 	const query = "SELECT user_id, name, email, password, role FROM users WHERE email = $1 LIMIT 1"
 	console.log(query)
