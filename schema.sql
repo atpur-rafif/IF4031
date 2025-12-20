@@ -31,7 +31,6 @@ CREATE TABLE complaints (
 	department_id INT NOT NULL,
 	visibility visibility NOT NULL,
 	title VARCHAR(255),
-	description TEXT NOT NULL,
 	status complaint_status DEFAULT 'open',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

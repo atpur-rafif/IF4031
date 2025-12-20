@@ -27,13 +27,17 @@ complaintRouter.post("/complaint", authMiddleware,
 	const complaintData = createComplaintSchema.parse(req.body);
 	const complaintId = await transaction(async (client) => {
 		const { departmentId, visibility, title, description, status } = complaintData;
-		const result = await client.query(
-			`INSERT INTO complaints (user_id, department_id, visibility, title, description, status)
-			 VALUES ($1, $2, $3, $4, $5, $6) RETURNING complaint_id`,
-			[req.user.userId, departmentId, visibility, title, description, status]
+		const { rows: [{ complaint_id: complaintId }] } = await client.query(
+			`INSERT INTO complaints (user_id, department_id, visibility, title, status)
+			 VALUES ($1, $2, $3, $4, $5) RETURNING complaint_id`,
+			[req.user.userId, departmentId, visibility, title, status]
 		);
 
-		const complaintId = result.rows[0].complaint_id;
+		const { rows: [{ comment_id: commentId }] } = await client.query(
+			`INSERT INTO complaint_comments (complaint_id, user_id, hide_user, comment)
+			 VALUES ($1, $2, $3, $4) RETURNING comment_id`,
+			[complaintId, req.user.userId, visibility === "anonymous", description]
+		);
 
 		if (req.file) {
 			if (attachment.file) {
@@ -41,7 +45,7 @@ complaintRouter.post("/complaint", authMiddleware,
 
 				await pool.query(
 					'INSERT INTO attachments (comment_id, file_info) VALUES ($1, $2)',
-					[complaintId, fileInfo]
+					[commentId, fileInfo]
 				);
 			}
 		}

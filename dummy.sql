@@ -10,11 +10,11 @@ INSERT INTO users (name, email, password, role, department_id) VALUES
 ('Emily White', 'emily.white@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL),
 ('David Green', 'david.green@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL);
 
-INSERT INTO complaints (user_id, department_id, visibility, title, description, status) VALUES
-(1, 1, 'public', 'Payroll issue', 'I have not received my paycheck this month', 'open'),
-(2, 2, 'private', 'Server downtime', 'The server has been down for 3 hours', 'in_progress'),
-(4, 3, 'anonymous', 'Long wait times', 'Support takes too long to respond to tickets', 'resolved'),
-(5, 3, 'public', 'Missing documentation', 'I cannot find the latest documents in the shared folder', 'open');
+INSERT INTO complaints (user_id, department_id, visibility, title, status) VALUES
+(1, 1, 'public', 'Payroll issue', 'open'),
+(2, 2, 'private', 'Server downtime', 'in_progress'),
+(4, 3, 'anonymous', 'Long wait times', 'resolved'),
+(5, 3, 'public', 'Missing documentation', 'open');
 
 INSERT INTO complaint_comments (complaint_id, user_id, hide_user, comment) VALUES
 (1, 2, FALSE, 'We are investigating the payroll issue. Please share your employee ID.'),
