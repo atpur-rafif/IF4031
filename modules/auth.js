@@ -37,7 +37,7 @@ const loginSchema = z.object({
 authRouter.post('/login', async (req, res) => {
 	const { email, password } = loginSchema.parse(req.body);
 
-	const query = "SELECT user_id, name, email, password, role FROM users WHERE email = $1 LIMIT 1"
+	const query = "SELECT user_id, name, email, department_id, password, role FROM users WHERE email = $1 LIMIT 1"
 	const { rows: [user] } = await pool.query(query, [email]);
 	const isMatch = user !== undefined && await bcrypt.compare(password, user.password);
 	if (!isMatch) throw {
