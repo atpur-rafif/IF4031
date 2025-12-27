@@ -6,7 +6,14 @@ import { authMiddleware } from "./auth.js"
 import { fileUpload } from "./body.js";
 
 const entriesPerPage = 100
+const complaintStatus = ['open', 'in_progress', 'resolved']
+
 export const complaintRouter = express.Router()
+
+export const updateComplaintStatusSchema = z.object({
+	complaintId: z.coerce.number(),
+	status: z.enum(complaintStatus)
+})
 
 export const createComplaintSchema = z.object({
   departmentId: z.coerce.number(),
@@ -15,6 +22,28 @@ export const createComplaintSchema = z.object({
   title: z.string().max(255, "Title is too long"),
   description: z.string().min(1, "Description is required"),
 });
+
+complaintRouter.patch("/complaint/status", authMiddleware(["department"]), async (req, res) => {
+	const { status, complaintId } = updateComplaintStatusSchema.parse(req.body);
+
+	const { rows: [complaint] } =
+		await pool.query(sql`SELECT department_id FROM complaints WHERE complaint_id = ${complaintId}`)
+	if(!complaint) throw {
+		status: 404,
+		message: "Unknown complaint"
+	}
+
+	if(complaint.department_id !== req.user.departmentId) throw {
+		status: 401,
+		message: "Unauthorized"
+	}
+
+	await pool.query(sql`UPDATE complaints SET status = ${status} WHERE complaint_id = ${complaintId}`)
+
+	return res.status(201).send({
+		message: 'Complain status updated',
+	})
+})
 
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	const role = req.user?.role
