@@ -1,6 +1,7 @@
 import z from "zod"
 import express from "express"
-import { transaction } from "./database.js";
+import sql from "sql-template-strings"
+import { pool, transaction } from "./database.js";
 import { authMiddleware } from "./auth.js"
 import { fileUpload } from "./body.js";
 
@@ -11,10 +12,10 @@ export const complaintRouter = express.Router()
 
 export const createComplaintSchema = z.object({
   departmentId: z.coerce.number(),
-  visibility: z.enum(visibilityEnum, "Visibility must be either 'public' or 'private'"),
+  private: z.boolean().default(false),
+  anonymous: z.boolean().default(false),
   title: z.string().max(255, "Title is too long"),
   description: z.string().min(1, "Description is required"),
-  status: z.enum(statusEnum).default('open'),
 });
 
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
@@ -26,26 +27,22 @@ complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 
 	const complaintData = createComplaintSchema.parse(req.body);
 	const complaintId = await transaction(async (client) => {
-		const { departmentId, visibility, title, description, status } = complaintData;
+		const { departmentId, private: _private, anonymous, title, description } = complaintData;
 		const { rows: [{ complaint_id: complaintId }] } = await client.query(
-			`INSERT INTO complaints (user_id, department_id, visibility, title, status)
-			 VALUES ($1, $2, $3, $4, $5) RETURNING complaint_id`,
-			[req.user.userId, departmentId, visibility, title, status]
+			sql`INSERT INTO complaints (user_id, department_id, private, anonymous, title, status)
+			    VALUES (${req.user.userId}, ${departmentId}, ${_private}, ${anonymous}, ${title}, 'open') RETURNING complaint_id`
 		);
 
 		const { rows: [{ comment_id: commentId }] } = await client.query(
-			`INSERT INTO complaint_comments (complaint_id, user_id, hide_user, comment)
-			 VALUES ($1, $2, $3, $4) RETURNING comment_id`,
-			[complaintId, req.user.userId, visibility === "anonymous", description]
+			sql`INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment)
+			    VALUES (${complaintId}, ${req.user.userId}, ${anonymous}, ${description}) RETURNING comment_id`,
 		);
 
 		if (req.file) {
 			if (attachment.file) {
-				const fileInfo = req.file.path;
-
 				await pool.query(
-					'INSERT INTO attachments (comment_id, file_info) VALUES ($1, $2)',
-					[commentId, fileInfo]
+					sql`INSERT INTO attachments (comment_id, file_info)
+					    VALUES (${commentId}, ${req.file.path})`,
 				);
 			}
 		}

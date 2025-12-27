@@ -10,13 +10,13 @@ INSERT INTO users (name, email, password, role, department_id) VALUES
 ('Emily White', 'emily.white@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL),
 ('David Green', 'david.green@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL);
 
-INSERT INTO complaints (user_id, department_id, visibility, title, status) VALUES
-(1, 1, 'public', 'Payroll issue', 'open'),
-(2, 2, 'private', 'Server downtime', 'in_progress'),
-(4, 3, 'anonymous', 'Long wait times', 'resolved'),
-(5, 3, 'public', 'Missing documentation', 'open');
+INSERT INTO complaints (user_id, department_id, private, anonymous, title, status) VALUES
+(1, 1, false, false, 'Payroll issue', 'open'),
+(2, 2, true, false, 'Server downtime', 'in_progress'),
+(4, 3, true, true, 'Long wait times', 'resolved'),
+(5, 3, false, true, 'Missing documentation', 'open');
 
-INSERT INTO complaint_comments (complaint_id, user_id, hide_user, comment) VALUES
+INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment) VALUES
 (1, 2, FALSE, 'We are investigating the payroll issue. Please share your employee ID.'),
 (2, 1, TRUE, 'The issue has been escalated to IT. Please be patient.'),
 (3, 3, FALSE, 'We are working to resolve the long wait times issue.'),

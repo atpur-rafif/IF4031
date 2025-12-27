@@ -1,5 +1,4 @@
 CREATE TYPE role AS ENUM ('user', 'department', 'admin');
-CREATE TYPE visibility AS ENUM ('public', 'private', 'anonymous');
 CREATE TYPE complaint_status AS ENUM ('open', 'in_progress', 'resolved');
 
 CREATE TABLE departments (
@@ -29,7 +28,8 @@ CREATE TABLE complaints (
 	complaint_id SERIAL PRIMARY KEY,
 	user_id INT NULL,
 	department_id INT NOT NULL,
-	visibility visibility NOT NULL,
+	private BOOLEAN NOT NULL,
+	anonymous BOOLEAN NOT NULL,
 	title VARCHAR(255),
 	status complaint_status DEFAULT 'open',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -42,7 +42,7 @@ CREATE TABLE complaint_comments (
 	comment_id SERIAL PRIMARY KEY,
 	complaint_id INT NOT NULL,
 	user_id INT NOT NULL,
-	hide_user BOOLEAN,
+	anonymous BOOLEAN,
 	comment TEXT NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (complaint_id) REFERENCES complaints(complaint_id) ON DELETE CASCADE,
