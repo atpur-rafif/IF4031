@@ -7,12 +7,17 @@ import { pool } from "./database.js"
 
 const JWT_SECRET = 'your_secret_key';
 
-export function authMiddleware(req, _, next) {
-	const token = req.headers.authorization?.split(" ")[1];
+export const authMiddleware = (roles) => (req, _, next) => {
+	if(roles.length === 0) {
+		next()
+		return
+	}
 
+	const token = req.headers.authorization?.split(" ")[1];
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
 		req.user = decoded;
+		if (roles.indexOf(req.role) !== -1) throw Error("Unauthorized");
 		next();
 	} catch (_) {
 		throw {
@@ -40,20 +45,16 @@ authRouter.post('/login', async (req, res) => {
 		message: "Invalid credentials"
 	}
 
+	const payload = { userId: user.user_id, email: user.email, role: user.role }
+	if(user.role === "department") payload.departmentId = user.department_id
 	const token = jwt.sign(
-		{ userId: user.user_id, email: user.email, role: user.role },
+		payload,
 		JWT_SECRET,
 		{ expiresIn: '1h' }
 	);
 
 	return res.json({
 		message: 'Login successful',
-		token,
-		user: {
-			userId: user.user_id,
-			name: user.name,
-			email: user.email,
-			role: user.role,
-		},
+		token, payload
 	});
 });

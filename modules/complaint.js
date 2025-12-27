@@ -17,7 +17,7 @@ export const createComplaintSchema = z.object({
   status: z.enum(statusEnum).default('open'),
 });
 
-complaintRouter.post("/complaint", authMiddleware,
+complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	fileUpload.single("attachment"), async (req, res) => {
 	if(req.user.role !== "user") throw {
 		status: 401,
