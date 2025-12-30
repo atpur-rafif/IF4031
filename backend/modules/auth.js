@@ -17,7 +17,7 @@ export const authMiddleware = (roles) => (req, _, next) => {
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
 		req.user = decoded;
-		if (roles.indexOf(req.role) !== -1) throw Error("Unauthorized");
+		if (roles.indexOf(req.role) === -1) throw Error("Unauthorized");
 		next();
 	} catch (_) {
 		throw {
