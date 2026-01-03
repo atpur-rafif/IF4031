@@ -11,3 +11,18 @@ services:
       - ./dummy.sql:/docker-entrypoint-initdb.d/2_dummy.sql
     ports:
       - "5432:5432"
+
+  frontend:
+    build:
+      target: frontend
+    ports:
+      - 8000:80
+
+  backend:
+    build:
+      target: backend
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST=db
