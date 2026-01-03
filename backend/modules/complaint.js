@@ -22,6 +22,14 @@ export const createComplaintSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
+const createRoleFilter = (user) => {
+	const role = user?.role
+	return role === "admin" ? sql` WHERE 1 = 1` :
+		role === "department" ? sql` WHERE private = false OR department_id = ${req.user.departmentId}` :
+		role === "user" ? sql` WHERE private = false OR user_id = ${req.user.userId}` :
+			sql` WHERE private = false`
+}
+
 complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), async (req, res) => {
 	const complaintId = req.params.id
 	const { status } = updateComplaintStatusSchema.parse(req.body);
@@ -45,18 +53,37 @@ complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), a
 	})
 })
 
+complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
+	const complaintId = req.params.id
+
+	const filter = createRoleFilter(req.user).append(sql` AND complaint_id = ${complaintId}`)
+	const { rows: [complaint] } = await pool.query(sql`
+		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
+		FROM complaints JOIN users USING(user_id)`.append(filter))
+
+	if(!complaint) throw {
+		status: 404,
+		message: "Unknown complaint"
+	}
+
+	const { rows: comments } = await pool.query(sql`
+		SELECT user_id, anonymous, comment
+		FROM complaint_comments JOIN users USING(user_id)
+		WHERE complaint_id = ${complaintId}
+		ORDER BY comment_id`)
+
+	return res.status(200).send({
+		message: 'Complain status updated',
+		data: { complaint, comments }
+	})
+})
+
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
-	const role = req.user?.role
 	const select = sql`
 		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
 		FROM complaints JOIN users USING(user_id)`
 
-	const roleFilter =
-		role === "admin" ? sql`` :
-		role === "department" ? sql` WHERE private = false OR department_id = ${req.user.departmentId}` :
-		role === "user" ? sql` WHERE private = false OR user_id = ${req.user.userId}` :
-			sql` WHERE private = false`
-
+	const roleFilter = createRoleFilter(req.user)
 	const counter = sql`SELECT COUNT(1) FROM complaints`
 	const { rows: [{ count }] } = await pool.query(counter.append(roleFilter))
 	const maxPage = Math.max(Math.ceil(count / entriesPerPage), 1)
