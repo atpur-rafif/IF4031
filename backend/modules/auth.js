@@ -8,23 +8,19 @@ import { pool } from "./database.js"
 const JWT_SECRET = 'your_secret_key';
 
 export const authMiddleware = (roles) => (req, _, next) => {
-	if(roles.length === 0) {
-		next()
-		return
-	}
-
 	const token = req.headers.authorization?.split(" ")[1];
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET);
 		req.user = decoded;
-		if (roles.indexOf(req.role) === -1) throw Error("Unauthorized");
-		next();
 	} catch (_) {
-		throw {
-			status: 401,
-			message: "Unauthorized"
-		}
 	}
+
+	if (roles.length > 0 && roles.indexOf(req.user.role) === -1) throw {
+		status: 401,
+		message: "Unauthorized"
+	}
+
+	next();
 }
 
 export const authRouter = express.Router()
