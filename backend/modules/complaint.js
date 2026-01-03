@@ -38,7 +38,8 @@ const createRoleFilter = (user) => {
 const getComplaint = async (user, id) => {
 	const filter = createRoleFilter(user).append(sql` AND complaint_id = ${id}`)
 	const { rows: [complaint] } = await pool.query(sql`
-		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department, private, anonymous, title, status
+		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department,
+					 private, anonymous, title, status, complaints.created_at AS created_at
 		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`.append(filter))
 	return complaint
 }
@@ -76,7 +77,7 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 	}
 
 	const { rows: comments } = await pool.query(sql`
-		SELECT user_id, anonymous, comment
+		SELECT user_id, anonymous, comment, complaint_comments.created_at AS created_at
 		FROM complaint_comments JOIN users USING(user_id)
 		WHERE complaint_id = ${complaintId}
 		ORDER BY comment_id`)
@@ -89,7 +90,8 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	const select = sql`
-		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department, private, anonymous, title, status
+		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department,
+					 private, anonymous, title, status, complaints.created_at AS created_at
 		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`
 
 	const roleFilter = createRoleFilter(req.user)
