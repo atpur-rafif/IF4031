@@ -33,7 +33,6 @@ CREATE TABLE complaints (
 	title VARCHAR(255),
 	status complaint_status DEFAULT 'open',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
 	FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
