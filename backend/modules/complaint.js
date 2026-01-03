@@ -22,12 +22,25 @@ export const createComplaintSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
+export const createCommentSchema = z.object({
+  anonymous: z.boolean().default(false),
+  comment: z.string().min(1, "Description is required"),
+});
+
 const createRoleFilter = (user) => {
 	const role = user?.role
 	return role === "admin" ? sql` WHERE 1 = 1` :
 		role === "department" ? sql` WHERE private = false OR department_id = ${req.user.departmentId}` :
 		role === "user" ? sql` WHERE private = false OR user_id = ${req.user.userId}` :
 			sql` WHERE private = false`
+}
+
+const getComplaint = async (user, id) => {
+	const filter = createRoleFilter(user).append(sql` AND complaint_id = ${id}`)
+	const { rows: [complaint] } = await pool.query(sql`
+		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
+		FROM complaints JOIN users USING(user_id)`.append(filter))
+	return complaint
 }
 
 complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), async (req, res) => {
@@ -55,11 +68,7 @@ complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), a
 
 complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 	const complaintId = req.params.id
-
-	const filter = createRoleFilter(req.user).append(sql` AND complaint_id = ${complaintId}`)
-	const { rows: [complaint] } = await pool.query(sql`
-		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
-		FROM complaints JOIN users USING(user_id)`.append(filter))
+	const complaint = await getComplaint(req.user, complaintId)
 
 	if(!complaint) throw {
 		status: 404,
@@ -146,5 +155,42 @@ complaintRouter.post("/complaint", authMiddleware(["user"]),
 	return res.status(201).json({
 		message: 'Complaint created successfully',
 		complaintId,
+	});
+})
+
+complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]),
+	fileUpload.single("attachment"), async (req, res) => {
+	const complaintId = req.params.id
+	const complaint = await getComplaint(req.user, complaintId)
+
+	if(!complaint) throw {
+		status: 404,
+		message: "Unknown complaint"
+	}
+
+	const commentData = createCommentSchema.parse(req.body);
+	const commentId = await transaction(async (client) => {
+		const { anonymous, comment } = commentData;
+
+		const { rows: [{ comment_id: commentId }] } = await client.query(
+			sql`INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment)
+			    VALUES (${complaintId}, ${req.user.userId}, ${anonymous}, ${comment}) RETURNING comment_id`,
+		);
+
+		if (req.file) {
+			if (attachment.file) {
+				await pool.query(
+					sql`INSERT INTO attachments (comment_id, file_info)
+					    VALUES (${commentId}, ${req.file.path})`,
+				);
+			}
+		}
+
+		return commentId
+	})
+
+	return res.status(201).json({
+		message: 'Comment created successfully',
+		commentId,
 	});
 })
