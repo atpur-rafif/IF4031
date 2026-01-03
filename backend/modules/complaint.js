@@ -61,7 +61,7 @@ complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), a
 
 	await pool.query(sql`UPDATE complaints SET status = ${status} WHERE complaint_id = ${complaintId}`)
 
-	return res.status(201).send({
+	return res.status(200).send({
 		message: 'Complain status updated',
 	})
 })
@@ -151,7 +151,7 @@ complaintRouter.post("/complaint", authMiddleware(["user"]),
 		return complaintId
 	})
 
-	return res.status(201).json({
+	return res.status(200).json({
 		message: 'Complaint created successfully',
 		complaintId,
 	});
@@ -188,7 +188,7 @@ complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]),
 		return commentId
 	})
 
-	return res.status(201).json({
+	return res.status(200).json({
 		message: 'Comment created successfully',
 		commentId,
 	});
