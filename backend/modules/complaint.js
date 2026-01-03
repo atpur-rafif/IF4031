@@ -11,7 +11,6 @@ const complaintStatus = ['open', 'in_progress', 'resolved']
 export const complaintRouter = express.Router()
 
 export const updateComplaintStatusSchema = z.object({
-	complaintId: z.coerce.number(),
 	status: z.enum(complaintStatus)
 })
 
@@ -23,8 +22,9 @@ export const createComplaintSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-complaintRouter.patch("/complaint/status", authMiddleware(["department"]), async (req, res) => {
-	const { status, complaintId } = updateComplaintStatusSchema.parse(req.body);
+complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), async (req, res) => {
+	const complaintId = req.params.id
+	const { status } = updateComplaintStatusSchema.parse(req.body);
 
 	const { rows: [complaint] } =
 		await pool.query(sql`SELECT department_id FROM complaints WHERE complaint_id = ${complaintId}`)
