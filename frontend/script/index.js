@@ -1,17 +1,18 @@
-const main = document.querySelector("#main")
-
 async function showComplaints(){
-	const res = await fetch("/api/complaint")
-	const { data: complaints } = await res.json()
-	console.log(complaints)
+	const headers = {}
+	if(localStorage.getItem("token"))
+		headers["Authorization"] = `Bearer ${localStorage.getItem("token")}`
 
-	main.innerHTML = `<div id="complaint">
+	const res = await fetch("/api/complaint", { headers })
+	const { data: complaints } = await res.json()
+
+	document.body.insertAdjacentHTML("beforeend", `<main id="complaint">
 		${complaints.map(complaint => `<div>
-			<a href="/complaint/${complaint.complaint_id}">${complaint.title} (${complaint.status})</a>
+			<a href="/complaint?id=${complaint.complaint_id}">${complaint.title} (${complaint.status})</a>
 			<p>From: ${complaint.user ?? "Anonymous"}</p>
 			<p>To: ${complaint.department}</p>
 		</div>`).join("")}
-	</div>`
+	</main>`)
 }
 
 showComplaints()
