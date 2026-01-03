@@ -2,6 +2,7 @@ import z from "zod"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import express from "express"
+import sql from "sql-template-strings"
 
 import { pool } from "./database.js"
 
@@ -33,7 +34,8 @@ const loginSchema = z.object({
 authRouter.post('/login', async (req, res) => {
 	const { email, password } = loginSchema.parse(req.body);
 
-	const query = "SELECT user_id, users.name AS name, email, department_id, departments.name AS department, password, role FROM users JOIN departments USING (department_id) WHERE email = $1 LIMIT 1"
+	const query = sql`SELECT user_id, users.name AS name, email, department_id, departments.name AS department, password, role
+										FROM users LEFT JOIN departments USING (department_id) WHERE email = $1 LIMIT 1`
 	const { rows: [user] } = await pool.query(query, [email]);
 	const isMatch = user !== undefined && await bcrypt.compare(password, user.password);
 	if (!isMatch) throw {
