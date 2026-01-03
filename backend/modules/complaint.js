@@ -30,7 +30,7 @@ export const createCommentSchema = z.object({
 const createRoleFilter = (user) => {
 	const role = user?.role
 	return role === "admin" ? sql` WHERE 1 = 1` :
-		role === "department" ? sql` WHERE private = false OR complaints.department_id = ${user.departmentId}` :
+		role === "department" ? sql` WHERE complaints.department_id = ${user.departmentId}` :
 		role === "user" ? sql` WHERE private = false OR user_id = ${user.userId}` :
 			sql` WHERE private = false`
 }
