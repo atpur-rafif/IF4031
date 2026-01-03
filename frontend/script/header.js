@@ -1,7 +1,7 @@
 const body = document.body
 
 const user = JSON.parse(localStorage.getItem("user"))
-const department = user?.departmentId ? `<br/>${user.departmentId}` : ""
+const department = user?.departmentId ? `<br/>${user.department}` : ""
 
 function logout(){
 	localStorage.clear()

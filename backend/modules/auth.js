@@ -33,7 +33,7 @@ const loginSchema = z.object({
 authRouter.post('/login', async (req, res) => {
 	const { email, password } = loginSchema.parse(req.body);
 
-	const query = "SELECT user_id, name, email, department_id, password, role FROM users WHERE email = $1 LIMIT 1"
+	const query = "SELECT user_id, users.name AS name, email, department_id, departments.name AS department, password, role FROM users JOIN departments USING (department_id) WHERE email = $1 LIMIT 1"
 	const { rows: [user] } = await pool.query(query, [email]);
 	const isMatch = user !== undefined && await bcrypt.compare(password, user.password);
 	if (!isMatch) throw {
@@ -42,7 +42,10 @@ authRouter.post('/login', async (req, res) => {
 	}
 
 	const payload = { userId: user.user_id, email: user.email, role: user.role }
-	if(user.role === "department") payload.departmentId = user.department_id
+	if(user.role === "department") {
+		payload.department = user.department
+		payload.departmentId = user.department_id
+	}
 	const token = jwt.sign(
 		payload,
 		JWT_SECRET,
