@@ -12,7 +12,7 @@ export function errorMiddleware(err, _, res, next){
 
 	if (err.status && err.message) res.status(err.status).send({ message: err.message });
 	else if(err instanceof z.ZodError){
-		return res.status(400).send({ message: err.issues.map(v => v.message) })
+		return res.status(400).send({ message: err.issues.map(v => v.message).join("\n") })
 	} else {
 		console.error(err)
 		return res.status(500).send({ message: "Internal Server Error" });
