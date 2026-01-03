@@ -10,8 +10,11 @@ const port = 9000;
 const app = express();
 app.use(body)
 
-app.use(authRouter)
-app.use(complaintRouter)
+const apiRouter = express.Router()
+apiRouter.use(authRouter)
+apiRouter.use(complaintRouter)
+
+app.use("/api", apiRouter)
 app.all('*path', () => {
 	throw {
 		status: 404,
