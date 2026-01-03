@@ -27,11 +27,21 @@ export const createCommentSchema = z.object({
   comment: z.string().min(1, "Description is required"),
 });
 
+const sanitizeAnonymous = (item) => {
+	if(item.anonymous){
+		delete item.user_id
+		if(item.user)
+			item.user = "Anonymous"
+	}
+
+	return item
+}
+
 const createRoleFilter = (user) => {
 	const role = user?.role
 	return role === "admin" ? sql` WHERE 1 = 1` :
 		role === "department" ? sql` WHERE complaints.department_id = ${user.departmentId}` :
-		role === "user" ? sql` WHERE private = false OR user_id = ${user.userId}` :
+		role === "user" ? sql` WHERE (private = false OR user_id = ${user.userId})` :
 			sql` WHERE private = false`
 }
 
@@ -41,7 +51,7 @@ const getComplaint = async (user, id) => {
 		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department,
 					 private, anonymous, title, status, complaints.created_at AS created_at
 		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`.append(filter))
-	return complaint
+	return sanitizeAnonymous(complaint)
 }
 
 complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), async (req, res) => {
@@ -76,15 +86,15 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 		message: "Unknown complaint"
 	}
 
-	const { rows: comments } = await pool.query(sql`
+	const { rows: comments } = (await pool.query(sql`
 		SELECT user_id, anonymous, comment, complaint_comments.created_at AS created_at
 		FROM complaint_comments JOIN users USING(user_id)
 		WHERE complaint_id = ${complaintId}
-		ORDER BY comment_id`)
+		ORDER BY comment_id`))
 
 	return res.status(200).send({
 		message: 'Complain status updated',
-		data: { complaint, comments }
+		data: { complaint, comments: comments.map(sanitizeAnonymous) }
 	})
 })
 
@@ -110,14 +120,7 @@ complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	const pagination = sql` OFFSET ${start} LIMIT ${end}`
 
 	const { rows } = await pool.query(select.append(roleFilter).append(pagination))
-	const data = rows.map(entry => {
-		if(!entry.anonymous) {
-			delete entry.user_id
-			delete entry.user
-		}
-
-		return entry
-	})
+	const data = rows.map(sanitizeAnonymous)
 	return res.json({ data, maxPage })
 })
 
