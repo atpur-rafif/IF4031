@@ -6,13 +6,13 @@ import { body } from './modules/body.js';
 import { authRouter } from './modules/auth.js';
 import { complaintRouter } from "./modules/complaint.js"
 
-const port = 8080;
+const port = 9000;
 const app = express();
 app.use(body)
 
 app.use(authRouter)
 app.use(complaintRouter)
-app.all('/*path', () => {
+app.all('*path', () => {
 	throw {
 		status: 404,
 		message: "Not Found"
