@@ -38,8 +38,8 @@ const createRoleFilter = (user) => {
 const getComplaint = async (user, id) => {
 	const filter = createRoleFilter(user).append(sql` AND complaint_id = ${id}`)
 	const { rows: [complaint] } = await pool.query(sql`
-		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
-		FROM complaints JOIN users USING(user_id)`.append(filter))
+		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department, private, anonymous, title, status
+		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`.append(filter))
 	return complaint
 }
 
@@ -89,15 +89,14 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	const select = sql`
-		SELECT complaint_id, user_id, users.name AS user, complaints.department_id, private, anonymous, title, status
-		FROM complaints JOIN users USING(user_id)`
+		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department, private, anonymous, title, status
+		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`
 
 	const roleFilter = createRoleFilter(req.user)
 	const counter = sql`SELECT COUNT(1) FROM complaints`
 	const { rows: [{ count }] } = await pool.query(counter.append(roleFilter))
 	const maxPage = Math.max(Math.ceil(count / entriesPerPage), 1)
 	const page = Math.max(req.query.page ?? 0, 0)
-	console.log(page, maxPage, count)
 
 	if(page >= maxPage) throw {
 		status: 500,
