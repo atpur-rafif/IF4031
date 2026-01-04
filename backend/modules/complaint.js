@@ -15,14 +15,14 @@ export const updateComplaintStatusSchema = z.object({
 
 export const createComplaintSchema = z.object({
   departmentId: z.coerce.number(),
-  private: z.boolean().default(false),
-  anonymous: z.boolean().default(false),
+  private: z.coerce.boolean().default(false),
+  anonymous: z.coerce.boolean().default(false),
   title: z.string().max(255, "Title is too long"),
   description: z.string().min(1, "Description is required"),
 });
 
 export const createCommentSchema = z.object({
-  anonymous: z.boolean().default(false),
+  anonymous: z.coerce.boolean().default(false),
   comment: z.string().min(1, "Description is required"),
 });
 
