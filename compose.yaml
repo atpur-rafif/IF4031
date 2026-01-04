@@ -17,6 +17,8 @@ services:
       target: frontend
     ports:
       - 8000:80
+    volumes:
+      - ./frontend:/usr/share/nginx/html
 
   backend:
     build:

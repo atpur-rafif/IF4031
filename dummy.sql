@@ -12,21 +12,15 @@ INSERT INTO users (name, email, password, role, department_id) VALUES
 
 INSERT INTO complaints (user_id, department_id, private, anonymous, title, status) VALUES
 (1, 1, false, false, 'Payroll issue', 'open'),
-(2, 2, true, false, 'Server downtime', 'in_progress'),
-(4, 3, true, true, 'Long wait times', 'resolved'),
-(5, 3, false, true, 'Missing documentation', 'open');
+(1, 2, true, false, 'Server downtime', 'in_progress'),
+(2, 2, true, true, 'Long wait times', 'resolved'),
+(2, 2, false, true, 'Missing documentation', 'open');
 
 INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment) VALUES
-(1, 2, FALSE, 'We are investigating the payroll issue. Please share your employee ID.'),
-(2, 1, TRUE, 'The issue has been escalated to IT. Please be patient.'),
-(3, 3, FALSE, 'We are working to resolve the long wait times issue.'),
-(4, 4, FALSE, 'The documents will be uploaded soon. We are working on it.');
-
-INSERT INTO attachments (comment_id, file_info) VALUES
-(1, 'payroll_issue_proof.pdf'),
-(2, 'server_downtime_screenshot.png'),
-(3, 'support_wait_time_log.csv'),
-(4, 'missing_docs_screenshot.png');
+(1, 4, FALSE, 'We are investigating the payroll issue. Please share your employee ID.'),
+(2, 5, TRUE, 'The issue has been escalated to IT. Please be patient.'),
+(3, 5, FALSE, 'We are working to resolve the long wait times issue.'),
+(4, 5, FALSE, 'The documents will be uploaded soon. We are working on it.');
 
 INSERT INTO complaint_upvotes (complaint_id, user_id) VALUES
 (1, 3),

@@ -10,7 +10,12 @@ function logout(){
 
 body.insertAdjacentHTML("afterbegin", `
 <header>
-	<h1>Complaint Management</h1>
+	<div>
+		<a href="/">
+			<h1>Complaint Management</h1>
+		</a>
+		${user.role === "user" ? `<a href="/complaint/new">New complaint</a>` : ""}
+	</div>
 	<div id="left-header">
 		${user ? `${user.email}<br/>${user.department ?? ""} ${user.role}<br/><button onclick="logout()">Logout</button>` :
 			`<a href="/login">Login</a>`}

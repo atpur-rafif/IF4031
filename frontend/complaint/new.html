@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Complaint Management</title>
+		<link href="/index.css" rel="stylesheet">
+		<script src="/script/header.js" defer></script>
+		<script src="/script/new-complaint.js" defer></script>
+	</head>
+	<body>
+		<main id="new-complaint">
+			<form>
+				<p>Title</p>
+				<input type="text" style="width:100%; padding: 0.2rem;" name="title"><br/><br/>
+
+				<p>Department</p>
+				<select id="department" name="departmentId">
+				</select><br/><br/>
+
+				<p>Description</p>
+				<textarea type="text" style="width: 100%; resize: vertical;" rows=5 name="description"></textarea><br/><br/>
+
+				<input type="checkbox" name="anonymous" value="true">
+				<span>Anonymous</span><br/>
+
+				<input type="checkbox" name="private" value="true">
+				<span>Private</span><br/>
+				<button>Submit</button>
+			</form>
+		</main>
+	</body>
+</html>
