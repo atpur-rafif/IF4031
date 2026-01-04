@@ -27,6 +27,8 @@ export const createCommentSchema = z.object({
 });
 
 const sanitizeAnonymous = (item) => {
+	if(!item) return item;
+
 	if("anonymous" in item && item.anonymous){
 		delete item.user_id
 		if(item.user)
