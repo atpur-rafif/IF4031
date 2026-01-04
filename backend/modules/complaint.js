@@ -3,7 +3,6 @@ import express from "express"
 import sql from "sql-template-strings"
 import { pool, transaction } from "./database.js";
 import { authMiddleware } from "./auth.js"
-import { fileUpload } from "./body.js";
 
 const entriesPerPage = 100
 const complaintStatus = ['open', 'in_progress', 'resolved']
@@ -124,8 +123,7 @@ complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	return res.json({ data, maxPage })
 })
 
-complaintRouter.post("/complaint", authMiddleware(["user"]),
-	fileUpload.single("attachment"), async (req, res) => {
+complaintRouter.post("/complaint", authMiddleware(["user"]), async (req, res) => {
 	if(req.user.role !== "user") throw {
 		status: 401,
 		message: "Only user can complaint"
@@ -139,19 +137,10 @@ complaintRouter.post("/complaint", authMiddleware(["user"]),
 			    VALUES (${req.user.userId}, ${departmentId}, ${_private}, ${anonymous}, ${title}, 'open') RETURNING complaint_id`
 		);
 
-		const { rows: [{ comment_id: commentId }] } = await client.query(
+		await client.query(
 			sql`INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment)
 			    VALUES (${complaintId}, ${req.user.userId}, ${anonymous}, ${description}) RETURNING comment_id`,
 		);
-
-		if (req.file) {
-			if (attachment.file) {
-				await pool.query(
-					sql`INSERT INTO attachments (comment_id, file_info)
-					    VALUES (${commentId}, ${req.file.path})`,
-				);
-			}
-		}
 
 		return complaintId
 	})
@@ -162,8 +151,7 @@ complaintRouter.post("/complaint", authMiddleware(["user"]),
 	});
 })
 
-complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]),
-	fileUpload.single("attachment"), async (req, res) => {
+complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]), async (req, res) => {
 	const complaintId = req.params.id
 	const complaint = await getComplaint(req.user, complaintId)
 
@@ -180,15 +168,6 @@ complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]),
 			sql`INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment)
 			    VALUES (${complaintId}, ${req.user.userId}, ${anonymous}, ${comment}) RETURNING comment_id`,
 		);
-
-		if (req.file) {
-			if (attachment.file) {
-				await pool.query(
-					sql`INSERT INTO attachments (comment_id, file_info)
-					    VALUES (${commentId}, ${req.file.path})`,
-				);
-			}
-		}
 
 		return commentId
 	})
