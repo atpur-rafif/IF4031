@@ -13,6 +13,10 @@ export const updateComplaintStatusSchema = z.object({
 	status: z.enum(complaintStatus)
 })
 
+export const upvoteComplaintSchema = z.object({
+	up: z.coerce.boolean().default(true)
+})
+
 export const createComplaintSchema = z.object({
   departmentId: z.coerce.number(),
   private: z.coerce.boolean().default(false),
@@ -78,6 +82,27 @@ complaintRouter.patch("/complaint/:id/status", authMiddleware(["department"]), a
 	})
 })
 
+complaintRouter.patch("/complaint/:id/vote", authMiddleware(["user"]), async (req, res) => {
+	const complaintId = req.params.id
+	const complaint = await getComplaint(req.user, complaintId)
+	const { up } = upvoteComplaintSchema.parse(req.body);
+	if(!complaint) throw {
+		status: 404,
+		message: "Unknown complaint"
+	}
+
+	if(up){
+		await pool.query(sql`INSERT INTO complaint_upvotes (complaint_id, user_id) VALUES (${complaintId}, ${req.user.userId}) ON CONFLICT DO NOTHING`)
+	} else{
+		await pool.query(sql`DELETE FROM complaint_upvotes WHERE complaint_id = ${complaintId} AND user_id = ${req.user.userId}`)
+	}
+
+	return res.status(200).send({
+		message: 'Complain upvote updated',
+	})
+})
+
+
 complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 	const complaintId = req.params.id
 	const complaint = await getComplaint(req.user, complaintId)
@@ -87,23 +112,28 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 		message: "Unknown complaint"
 	}
 
-	const { rows: comments } = (await pool.query(sql`
+	const { rows: comments } = await pool.query(sql`
 		SELECT user_id, users.name AS user, departments.name AS department, anonymous, comment, complaint_comments.created_at AS created_at
 		FROM complaint_comments JOIN users USING(user_id) LEFT JOIN departments USING(department_id)
 		WHERE complaint_id = ${complaintId}
-		ORDER BY comment_id`))
+		ORDER BY comment_id`)
+
+	const { rows: [upvote] } = await pool.query(sql`
+		SELECT (SELECT COUNT(1) FROM complaint_upvotes WHERE complaint_id = ${complaintId}) AS count,
+					 (SELECT COUNT(1) FROM complaint_upvotes WHERE complaint_id = ${complaintId} AND user_id = ${req.user.userId}) AS upvoted`)
 
 	return res.status(200).send({
 		message: 'Success',
-		data: { complaint, comments: comments.map(sanitizeAnonymous) }
+		data: { complaint, comments: comments.map(sanitizeAnonymous), upvote }
 	})
 })
 
 complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 	const select = sql`
 		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department,
-					 private, anonymous, title, status, complaints.created_at AS created_at
-		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id`
+					 private, anonymous, title, status, complaints.created_at AS created_at, upvote
+		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id
+		JOIN (SELECT complaint_id, COUNT(1) AS upvote FROM complaint_upvotes GROUP BY complaint_id) USING(complaint_id)`
 
 	const roleFilter = createRoleFilter(req.user)
 	const counter = sql`SELECT COUNT(1) FROM complaints`

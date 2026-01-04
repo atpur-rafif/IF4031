@@ -60,6 +60,18 @@ function createButton(status){
 	return div
 }
 
+async function upvote(up){
+	const res = await fetch(`/api/complaint/${complaintId}/vote`, {
+		headers: { ...headers, "content-type": "application/json" },
+		method: "PATCH",
+		body: JSON.stringify({ up })
+	})
+
+	const json = await res.json()
+	if(res.status === 200) showComplaint()
+	else alert(json.message)
+}
+
 async function showComplaint(){
 	const res = await fetch(`/api/complaint/${complaintId}`, { headers })
 	const { data } = await res.json()
@@ -71,7 +83,8 @@ async function showComplaint(){
 		return
 	}
 
-	const { complaint, comments } = data
+	const { complaint, comments, upvote } = data
+	const upvoted = upvote.upvoted === "1"
 	document.body.insertAdjacentElement("beforeend", main)
 
 	main.innerHTML = `
@@ -80,6 +93,7 @@ async function showComplaint(){
 	<h2>${complaint.title}</h2>
 	<p>${new Date(complaint.created_at).toLocaleString()}</p>
 	<p>Status: ${complaint.status}</p>
+	<p>Upvote: ${upvote.count} ${user ? `<button onclick="upvote(${!upvoted})">${upvoted ? "cancel" : "up"}</button>` : ""}</p>
 	<p>From: ${complaint.user}</p>
 	<p>To: ${complaint.department}</p>
 </div>

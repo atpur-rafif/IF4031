@@ -10,6 +10,7 @@ async function showComplaints(){
 		${complaints.map(complaint => `<div>
 			<a href="/complaint?id=${complaint.complaint_id}">${complaint.title} (${complaint.status})</a>
 			<p>${new Date(complaint.created_at).toLocaleString()}</p>
+			<p>Upvote: ${complaint.upvote}</p>
 			<p>From: ${complaint.user}</p>
 			<p>To: ${complaint.department}</p>
 		</div>`).join("")}

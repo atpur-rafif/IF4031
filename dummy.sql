@@ -23,7 +23,7 @@ INSERT INTO complaint_comments (complaint_id, user_id, anonymous, comment) VALUE
 (4, 5, FALSE, 'The documents will be uploaded soon. We are working on it.');
 
 INSERT INTO complaint_upvotes (complaint_id, user_id) VALUES
-(1, 3),
-(2, 4),
-(1, 5),
+(1, 1),
+(2, 1),
+(1, 2),
 (4, 2);
