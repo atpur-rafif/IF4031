@@ -93,7 +93,7 @@ async function showComplaint(){
 	<h2>${complaint.title}</h2>
 	<p>${new Date(complaint.created_at).toLocaleString()}</p>
 	<p>Status: ${complaint.status}</p>
-	<p>Upvote: ${upvote.count} ${user ? `<button onclick="upvote(${!upvoted})">${upvoted ? "cancel" : "up"}</button>` : ""}</p>
+	<p>Upvote: ${upvote.count} ${user?.role === "user" ? `<button onclick="upvote(${!upvoted})">${upvoted ? "cancel" : "up"}</button>` : ""}</p>
 	<p>From: ${complaint.user}</p>
 	<p>To: ${complaint.department}</p>
 </div>
