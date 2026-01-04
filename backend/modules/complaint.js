@@ -133,7 +133,7 @@ complaintRouter.get("/complaint", authMiddleware([]), async (req, res) => {
 		SELECT complaint_id, user_id, complaints.department_id, users.name AS user, departments.name AS department,
 					 private, anonymous, title, status, complaints.created_at AS created_at, upvote
 		FROM complaints JOIN users USING(user_id) JOIN departments ON complaints.department_id = departments.department_id
-		JOIN (SELECT complaint_id, COUNT(1) AS upvote FROM complaint_upvotes GROUP BY complaint_id) USING(complaint_id)`
+		LEFT JOIN (SELECT complaint_id, COUNT(1) AS upvote FROM complaint_upvotes GROUP BY complaint_id) USING(complaint_id)`
 
 	const roleFilter = createRoleFilter(req.user)
 	const counter = sql`SELECT COUNT(1) FROM complaints`
