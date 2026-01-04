@@ -10,7 +10,6 @@ login.addEventListener("submit", async (e) => {
 	})
 
 	const json = await res.json()
-	console.log(json)
 	if(res.status === 200) {
 		localStorage.setItem("user", JSON.stringify(json.payload))
 		localStorage.setItem("token", json.token)
