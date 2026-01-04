@@ -87,13 +87,13 @@ complaintRouter.get("/complaint/:id", authMiddleware([]), async (req, res) => {
 	}
 
 	const { rows: comments } = (await pool.query(sql`
-		SELECT user_id, anonymous, comment, complaint_comments.created_at AS created_at
-		FROM complaint_comments JOIN users USING(user_id)
+		SELECT user_id, users.name AS user, departments.name AS department, anonymous, comment, complaint_comments.created_at AS created_at
+		FROM complaint_comments JOIN users USING(user_id) LEFT JOIN departments USING(department_id)
 		WHERE complaint_id = ${complaintId}
 		ORDER BY comment_id`))
 
 	return res.status(200).send({
-		message: 'Complain status updated',
+		message: 'Success',
 		data: { complaint, comments: comments.map(sanitizeAnonymous) }
 	})
 })
