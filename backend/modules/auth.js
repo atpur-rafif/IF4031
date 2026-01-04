@@ -16,7 +16,8 @@ export const authMiddleware = (roles) => (req, _, next) => {
 	} catch (_) {
 	}
 
-	if (roles.length > 0 && roles.indexOf(req.user.role) === -1) throw {
+	const role = req.user?.role ?? null
+	if (roles.length > 0 && roles.indexOf(role) === -1) throw {
 		status: 401,
 		message: "Unauthorized"
 	}
