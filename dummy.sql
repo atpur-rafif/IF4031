@@ -5,10 +5,10 @@ INSERT INTO departments (name, description) VALUES
 
 INSERT INTO users (name, email, password, role, department_id) VALUES
 ('John Doe', 'john.doe@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL),
+('David Green', 'david.green@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL),
 ('Jane Smith', 'jane.smith@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'admin', NULL),
-('Michael Brown', 'michael.brown@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'department', 2),
-('Emily White', 'emily.white@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL),
-('David Green', 'david.green@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'user', NULL);
+('Michael Brown', 'michael.brown@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'department', 1),
+('Emily White', 'emily.white@example.com', '$2a$12$JJ1F24Z0m2h5Jrf8uSlo8.LGSGsaQOwY2t2bJy/UT9vtsmkklGMOO', 'department', 2);
 
 INSERT INTO complaints (user_id, department_id, private, anonymous, title, status) VALUES
 (1, 1, false, false, 'Payroll issue', 'open'),
