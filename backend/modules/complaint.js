@@ -183,7 +183,7 @@ complaintRouter.post("/complaint", authMiddleware(["user"]), async (req, res) =>
 	});
 })
 
-complaintRouter.post("/complaint/:id/comment", authMiddleware(["user"]), async (req, res) => {
+complaintRouter.post("/complaint/:id/comment", authMiddleware(["user", "department"]), async (req, res) => {
 	const complaintId = req.params.id
 	const complaint = await getComplaint(req.user, complaintId)
 
